@@ -161,30 +161,42 @@ const registerUserController = async(req, res)=>{
 
 
 const postBlogController = async (req, res) => {
-
-  console.log("controleer started ...")
+  console.log("controller started ...");
   const { userId } = req.params;
   const { title, description, content } = req.body;
 
-  // ... (keep your validation checks)
+  // 1. Validation Check
+  if (!userId || !title || !description || !content) {
+    throw new customError(400, "All fields (userId, title, description, content) are required");
+  }
 
+  // 2. Check if the User exists before doing anything else
+  const existinguser = await User.findById(userId);
+  if (!existinguser) {
+    throw new customError(404, "User not found");
+  }
+
+  // 3. Create the blog
   const blog = await Blogs.create({ 
     title, 
     description, 
     content, 
-    author: userId // Assign author immediately
+    author: userId 
   });
 
-  const existinguser = await User.findById(userId);
+  // 4. Update the user's blog list
   existinguser.blogs.push(blog._id);
 
-  // Use await for saves
+  // 5. Use await for saves (Keeping your logic)
   await existinguser.save();
   await blog.save();
 
-  res.status(201).json({ status: "success", message: "Blog created Successfully", data: blog });
+  res.status(201).json({ 
+    status: "success", 
+    message: "Blog created Successfully", 
+    data: blog 
+  });
 };
-
 
 
 
