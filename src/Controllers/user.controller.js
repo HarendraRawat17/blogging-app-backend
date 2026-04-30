@@ -120,7 +120,7 @@ const registerUserController = async(req, res)=>{
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,  // Requires Https
+      secure: true,  // Requires Https
       sameSite: "None", 
       // maxAge: 3600000, // 1 hour
     })

@@ -1,37 +1,45 @@
-import { customError } from "../Utils/errorClass.js";
 import jwt from "jsonwebtoken";
+import { customError } from "../Utils/errorClass.js";
 
-
-const authCheck = async(req, res, next) => {
-
+// 1. No need to wrap in expressAsyncHandler here; 
+// regular middlewares should use try-catch and next(err)
+const authCheck = async (req, res, next) => {
   try {
+    console.log("--- AuthCheck Middleware Started ---");
     
-    // const token = req.headers.authorization.split(" ")[1];
-    // console.log(token)
+    // 2. Defensive check for req.cookies (prevents undefined crash)
+    const token = req.cookies ? req.cookies.token : null;
 
-    const token = req.cookies.token;
-    console.log("authchekmiddleware")
-    console.log(token)
-
-
-    if ( !token ) {
-      throw new customError(400, "Token not found");
+    if (!token) {
+      console.log("Auth Error: No token found in cookies");
+      // 3. Return a clean 401 instead of letting the app crash
+      return res.status(401).json({ 
+        status: "error", 
+        message: "Authentication required. Please login again." 
+      });
     }
 
-    const decoded = jwt.verify( token, process.env.JWT_SECRET);
-
-    if ( !decoded ){
-      throw new customError(400, "Not a valid token");
+    // 4. Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    if (!decoded) {
+      throw new customError(401, "Invalid or expired token");
     }
-    // console.log(decoded)
-     req.user = decoded;  // Imp line of CODE
 
+    // Attach user data to request object
+    req.user = decoded;
+    console.log("Auth Success: User authenticated");
+    
     next();
-
   } catch (error) {
+    console.error("AuthCheck Error:", error.message);
     
-    throw new customError(500, error.message)
+    // 5. Pass the error to your 4-argument global handler
+    if (error.name === "JsonWebTokenError") {
+      return next(new customError(401, "Invalid token signature"));
+    }
+    next(error);
   }
-}
+};
 
 export default authCheck;
