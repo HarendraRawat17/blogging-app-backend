@@ -120,7 +120,7 @@ const registerUserController = async(req, res)=>{
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,  // Requires Https
-      sameSite: "Strict", 
+      sameSite: "None", 
       // maxAge: 3600000, // 1 hour
     })
 
@@ -161,6 +161,8 @@ const registerUserController = async(req, res)=>{
 
 
 const postBlogController = async (req, res) => {
+
+  console.log("controleer started ...")
   const { userId } = req.params;
   const { title, description, content } = req.body;
 

@@ -23,7 +23,7 @@ userRoute.get("/get-details/:userId", authCheck,roleCheck("admin","user"), expre
 
 
 
-userRoute.post("/post-blog/:userId", authCheck, roleCheck("admin", "user"), expressAsyncHandler(postBlogController));  
+userRoute.post("/post-blog/:userId", authCheck, roleCheck("admin","user"), expressAsyncHandler(postBlogController));  
 
 
 

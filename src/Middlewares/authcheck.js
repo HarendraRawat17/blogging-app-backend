@@ -10,6 +10,7 @@ const authCheck = async(req, res, next) => {
     // console.log(token)
 
     const token = req.cookies.token;
+    console.log("authchekmiddleware")
     console.log(token)
 
 
