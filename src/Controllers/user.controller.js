@@ -130,31 +130,32 @@ const registerUserController = async(req, res)=>{
 
 
 
- const getUserDetailsController = async (req, res) => {
-  const { userId } = req.params;
+const getUserDetailsController = async (req, res) => {
+  try {
+    const { userId } = req.params;
 
-  if (!userId) {
-    throw new customError(400, "user id is required");
+    // FIX: Check ID format BEFORE calling the database
+    if (!userId || !userId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ status: "error", message: "Invalid or missing User ID" });
+    }
+
+    const user = await User.findById(userId).populate('blogs');
+
+    if (!user) {
+      return res.status(404).json({ status: "error", message: "User not found" });
+    }
+
+    // FIX: Only send safe data, not the whole DB document
+    const userData = { name: user.name, email: user.email, blogs: user.blogs };
+
+    res.status(200).json({ status: "success", userData });
+
+  } catch (error) {
+    // FIX: Ensures the client gets a message even if the DB is down
+    res.status(500).json({ status: "error", message: error.message });
   }
-
- 
-  const user = await User.findById(userId).populate('blogs');
-
-  if (!user) {
-    throw new customError(404, "User not found");
-  }
-
-
-
-  const userData = {
-    name: user.name,
-    email: user.email,
-    phone: user.phone,
-    blogs: user.blogs
-  };
-
-  res.status(200).json({ status: "success", message: "user data fetched successfully", userData });
 };
+
 
 
 
