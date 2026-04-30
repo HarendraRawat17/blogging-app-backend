@@ -131,8 +131,6 @@ const registerUserController = async(req, res)=>{
 
 
 
-import mongoose from "mongoose";
-
 const getUserDetailsController = async (req, res) => {
   const { userId } = req.params;
 
