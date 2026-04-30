@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import {User} from "../Models/user.model.js"
 import {Blogs} from "../Models/blogs.model.js"
 
@@ -130,31 +131,30 @@ const registerUserController = async(req, res)=>{
 
 
 
+import mongoose from "mongoose";
+
 const getUserDetailsController = async (req, res) => {
-  try {
-    const { userId } = req.params;
+  const { userId } = req.params;
 
-    // FIX: Check ID format BEFORE calling the database
-    if (!userId || !userId.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ status: "error", message: "Invalid or missing User ID" });
-    }
-
-    const user = await User.findById(userId).populate('blogs');
-
-    if (!user) {
-      return res.status(404).json({ status: "error", message: "User not found" });
-    }
-
-    // FIX: Only send safe data, not the whole DB document
-    const userData = { name: user.name, email: user.email, blogs: user.blogs };
-
-    res.status(200).json({ status: "success", userData });
-
-  } catch (error) {
-    // FIX: Ensures the client gets a message even if the DB is down
-    res.status(500).json({ status: "error", message: error.message });
+  // Checks format. If bad, it THROWS to expressAsyncHandler, 
+  // which sends it to your new 4-argument handler in server.js
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new customError(400, "Invalid User ID format");
   }
+
+  const user = await User.findById(userId).populate('blogs');
+
+  if (!user) {
+    throw new customError(404, "User not found");
+  }
+
+  res.status(200).json({ 
+    status: "success", 
+    message: "user data fetched successfully", 
+    userData: { name: user.name, email: user.email, blogs: user.blogs } 
+  });
 };
+
 
 
 
