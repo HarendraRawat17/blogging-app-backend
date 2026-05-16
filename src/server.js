@@ -28,6 +28,7 @@ server.use(express.json());
 server.use (
   cors({
     origin: "https://the-unfolding.netlify.app",
+    // origin: "http://localhost:5173",
     credentials : true,
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"]
   }
