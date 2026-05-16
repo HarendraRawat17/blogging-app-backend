@@ -7,7 +7,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --import dotenv/config --experimental-json-modules ./src/server.js"
+    "dev": "nodemon --import dotenv/config --experimental-json-modules ./src/server.js",
+    "start": "node --import dotenv/config --experimental-json-modules ./src/server.js"
 
   },
   "dependencies": {
