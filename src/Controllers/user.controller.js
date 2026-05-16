@@ -11,126 +11,110 @@ import { roleCheck } from "../Middlewares/roleCheck.js";
 
 
 
+const registerUserController = async (req, res, next) => { 
+  try {
+    const { name, email, phone, password } = req.body;
 
-const registerUserController = async(req, res)=>{
- 
-    try {
-      const { name, email, phone, password } = req.body;
-  
-      if (!name || !email || !phone || !password ) {
-         throw new customError(400, "All fields are required");
-      }
-  
-  
-      // For Already Registered Users
-  
-      const existingUser = await User.findOne({email});
-  
-      if (existingUser) {
-        throw new customError(400, "User Already Exists");
-      }
-  
-  
-  
-      // Password Hashing :-
-  
-      const hashedPassword = await bcrypt.hash(password, 12);
-  
-  
-      // OTP Creation
-      const OTP = Math.floor(1000 + Math.random()* 9000);
-  
-      // IF first time User
-      const user = await User.create({name, email, phone, password: hashedPassword, OTP});
-  
-  
-       // send OTP Email
-       await sendEmail(email, "OTP Verification", otpVerificationTemplate.replace("{OTP}", OTP.toString()));
-  
-      res.status(201).json({status: "success", user});
-    } catch (error) {
-      console.error("Registration Core Failure:", error.message);
-      next(error); 
+    if (!name || !email || !phone || !password ) {
+       throw new customError(400, "All fields are required");
     }
+
+    const existingUser = await User.findOne({email});
+    if (existingUser) {
+      throw new customError(400, "User Already Exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const OTP = Math.floor(1000 + Math.random()* 9000);
+
+    // 1. User created in DB successfully here
+    const user = await User.create({name, email, phone, password: hashedPassword, OTP});
+
+    // 2. Email process triggers
+    await sendEmail(email, "OTP Verification", otpVerificationTemplate.replace("{OTP}", OTP.toString()));
+
+    // 3. Sent back to frontend
+    return res.status(201).json({status: "success", user});
+
+  } catch (error) {
+    console.error("Caught email or DB error:", error.message);
+    next(error); 
+  }
+};
+
+
+
+
+const otpVerificationController = async (req, res) => {
+
+  const { email, otp } = req.body;
+
+  console.log(email, otp);
+
+  if (!email || !otp) {
+    throw new customError(400, "All fields are required")
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new customError(400, "User not found");
   }
 
 
+  console.log(otp, user.OTP)
 
+  if (user.OTP !== otp) {
+    throw new customError(400, "Incorrect OTP");
+  }
+  // Updating database fields
 
-  const otpVerificationController = async(req, res)=> {
+  user.OTP = null;
+  user.isVerified = true;
+  await user.save()
 
-    const {email, otp} = req.body;
-
-    console.log(email, otp);
-    
-    if(!email || !otp) {
-      throw new customError(400, "All fields are required")
-    }
-
-    const user = await User.findOne({email});
-
-    if(!user){
-      throw new customError(400, "User not found");
-    }
-
-
-    console.log(otp, user.OTP)
-
-    if(user.OTP !== otp) {
-      throw new customError(400, "Incorrect OTP");
-    }
+  res.status(200).json({ status: "success", message: "OTP verified successfully" })
+}
 
 
 
 
-    // Updating database fields
+const loginController = async (req, res) => {
+  const { email, password } = req.body;
 
-    user.OTP = null;
-    user.isVerified = true;
-    await user.save()
+  if (!email || !password) {
+    throw new customError(400, "All fields are required")
+  }
 
-    res.status(200).json({status: "success", message:"OTP verified successfully"})
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new customError(400, "User not found")
+  }
+
+  if (!user.isVerified) {
+    throw new customError(400, "User not Verified")
+  }
+
+  const isPassowrdValid = await bcrypt.compare(password, user.password);
+
+  if (!isPassowrdValid) {
+    throw new customError(400, "Incorrect Password")
   }
 
 
+  const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
+  // console.log(token)
 
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,  // Requires Https
+    sameSite: "None",
+    // maxAge: 3600000, // 1 hour
+  })
 
-  const loginController = async (req, res)=> {
-    const {email, password} = req.body;
-
-    if( !email || !password ){
-      throw new customError(400, "All fields are required")
-    }
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      throw new customError(400, "User not found")
-    }
-
-    if (!user.isVerified) {
-      throw new customError(400, "User not Verified")
-    }
-
-    const isPassowrdValid = await bcrypt.compare(password, user.password);
-
-    if (!isPassowrdValid) {
-      throw new customError(400, "Incorrect Password")
-    }
-
-
-    const token = jwt.sign({ userId: user._id, role : user.role }, process.env.JWT_SECRET);
-    // console.log(token)
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,  // Requires Https
-      sameSite: "None", 
-      // maxAge: 3600000, // 1 hour
-    })
-
-    res.status(200).json({status: "success", message: "Login Successful", userId : user._id, token})
-  }
+  res.status(200).json({ status: "success", message: "Login Successful", userId: user._id, token })
+}
 
 
 
