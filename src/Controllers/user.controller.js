@@ -14,39 +14,44 @@ import { roleCheck } from "../Middlewares/roleCheck.js";
 
 const registerUserController = async(req, res)=>{
  
-    const { name, email, phone, password } = req.body;
-
-    if (!name || !email || !phone || !password ) {
-       throw new customError(400, "All fields are required");
+    try {
+      const { name, email, phone, password } = req.body;
+  
+      if (!name || !email || !phone || !password ) {
+         throw new customError(400, "All fields are required");
+      }
+  
+  
+      // For Already Registered Users
+  
+      const existingUser = await User.findOne({email});
+  
+      if (existingUser) {
+        throw new customError(400, "User Already Exists");
+      }
+  
+  
+  
+      // Password Hashing :-
+  
+      const hashedPassword = await bcrypt.hash(password, 12);
+  
+  
+      // OTP Creation
+      const OTP = Math.floor(1000 + Math.random()* 9000);
+  
+      // IF first time User
+      const user = await User.create({name, email, phone, password: hashedPassword, OTP});
+  
+  
+       // send OTP Email
+       await sendEmail(email, "OTP Verification", otpVerificationTemplate.replace("{OTP}", OTP.toString()));
+  
+      res.status(201).json({status: "success", user});
+    } catch (error) {
+      console.error("Registration Core Failure:", error.message);
+      next(error); 
     }
-
-
-    // For Already Registered Users
-
-    const existingUser = await User.findOne({email});
-
-    if (existingUser) {
-      throw new customError(400, "User Already Exists");
-    }
-
-
-
-    // Password Hashing :-
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-
-    // OTP Creation
-    const OTP = Math.floor(1000 + Math.random()* 9000);
-
-    // IF first time User
-    const user = await User.create({name, email, phone, password: hashedPassword, OTP});
-
-
-     // send OTP Email
-     await sendEmail(email, "OTP Verification", otpVerificationTemplate.replace("{OTP}", OTP.toString()));
-
-    res.status(201).json({status: "success", user});
   }
 
 
