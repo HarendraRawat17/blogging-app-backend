@@ -31,7 +31,7 @@ const registerUserController = async (req, res, next) => {
     const user = await User.create({name, email, phone, password: hashedPassword, OTP});
 
     // 2. Email process triggers
-    await sendEmail(email, "OTP Verification", otpVerificationTemplate.replace("{OTP}", OTP.toString()));
+    sendEmail(email, "OTP Verification", otpVerificationTemplate.replace("{OTP}", OTP.toString()));
 
     // 3. Sent back to frontend
     return res.status(201).json({status: "success", user});
