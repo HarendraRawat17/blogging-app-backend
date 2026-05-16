@@ -4,8 +4,8 @@ import nodemailer from "nodemailer";
 // create a transporter using SMTP 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: 587,
-  secure: false, // use STARTTLS (upgrade connections to TLS after connecting)
+  port: 465,
+  secure: true, 
   auth: {
     user: process.env.EMAIL_USER, 
     pass: process.env.EMAIL_PASS,
