@@ -7,7 +7,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon ./src/server.js"
+    "dev": "nodemon --import dotenv/config --experimental-json-modules ./src/server.js"
+
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

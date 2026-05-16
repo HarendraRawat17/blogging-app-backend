@@ -13,7 +13,6 @@ import { roleCheck } from "../Middlewares/roleCheck.js";
 
 
 const registerUserController = async(req, res)=>{
-   console.log("Request received!", req.body); 
  
     const { name, email, phone, password } = req.body;
 
@@ -45,7 +44,7 @@ const registerUserController = async(req, res)=>{
 
 
      // send OTP Email
-    sendEmail(email, "OTP Verification", otpVerificationTemplate.replace("{OTP}", OTP));
+     await sendEmail(email, "OTP Verification", otpVerificationTemplate.replace("{OTP}", OTP.toString()));
 
     res.status(201).json({status: "success", user});
   }
