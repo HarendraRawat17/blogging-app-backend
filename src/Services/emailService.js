@@ -1,34 +1,32 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// create a transporter using SMTP 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, 
-  auth: {
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS,
-  },
+export const sendEmail = async (
+  recepient,
+  subject,
+  emailTemplate
+) => {
 
-});
-
-
-export const sendEmail = async(recepient, subject, emailTemplate)=> {
   try {
-    const info = await transporter.sendMail({
-      from: `BlogYourWay Team <${process.env.EMAIL_USER}>`,
-      to: recepient, // list of recepients
-      subject: subject, // subject line
-      html: emailTemplate, // HTML body
+
+    const response = await resend.emails.send({
+      from: "onboarding@resend.dev",
+      to: recepient,
+      subject: subject,
+      html: emailTemplate,
     });
 
-    console.log(`📨 Mail dispatched successfully to: ${recepient} | ID: ${info.messageId}`);
+    console.log(
+      `📨 Mail dispatched successfully to: ${recepient}`
+    );
 
-    return info;
+    return response;
 
   } catch (error) {
-    console.error("FULL EMAIL ERROR:", error);
+
+    console.error("RESEND EMAIL ERROR:", error);
+
     throw error;
   }
-}
+};
