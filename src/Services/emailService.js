@@ -27,7 +27,7 @@ export const sendEmail = async(recepient, subject, emailTemplate)=> {
     return info;
 
   } catch (error) {
-    console.error("Error while sending mail: %s", error.message);
+    console.error("FULL EMAIL ERROR:", error);
     throw error;
   }
 }

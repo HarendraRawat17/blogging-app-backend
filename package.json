@@ -9,7 +9,6 @@
   "scripts": {
     "dev": "nodemon --import dotenv/config --experimental-json-modules ./src/server.js",
     "start": "node --import dotenv/config --experimental-json-modules ./src/server.js"
-
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -27,6 +26,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^8.0.4",
     "nodemon": "^3.1.14",
+    "resend": "^6.12.3",
     "winston": "^3.19.0"
   }
 }
