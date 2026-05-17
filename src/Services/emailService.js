@@ -11,7 +11,7 @@ export const sendEmail = async (
   try {
 
     const response = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: `The Unfolding <onboarding@resend.dev>`,
       to: recepient,
       subject: subject,
       html: emailTemplate,
